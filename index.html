@@ -13,14 +13,63 @@
 a:focus-visible{outline:2px solid currentColor;outline-offset:5px}
 @media(max-width:750px){.hero-photo{padding-left:0}.hero-photo img{height:clamp(290px,100vw,470px)}.hero .actions{gap:12px 20px}.hero .textlink{display:inline-flex;align-items:center;min-height:44px}.info strong{max-width:67%}.strip{gap:12px 28px}.contacts .button{min-height:48px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button,.nav-btn{transition:none}}
+.gallery-controls{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:4px;background:#283831;border-radius:99px}
+.gallery-controls[hidden]{display:none}
+.gallery-controls button{border:0;border-radius:50%;width:44px;height:44px;background:transparent;color:#fff;cursor:pointer;font:600 23px system-ui}
+.gallery-controls button:hover,.gallery-controls button:focus-visible{background:#4b6a57;outline:2px solid #fff;outline-offset:-3px}
+@media(max-width:380px){.hero h1{font-size:clamp(36px,11vw,45px)}}
 </style>
 </head>
 <body>
 <header><a class="brand" href="#top">Кроха<span>&amp;</span>Великан</a><nav><a href="#about">О студии</a><a href="#contacts">Контакты</a><a class="nav-btn" href="https://t.me/kroha_i_velikan">Написать нам ↗</a></nav></header>
 <main id="top">
-<section class="hero wrap"><div><div class="eyebrow">Груминг-студия · Красноярск</div><h1>Кроха<span class="amp">&amp;</span><br><em>Великан</em></h1><p class="lead">Груминг по предварительной записи в ЖК «Белые росы». Ярыгинская набережная, 13.</p><div class="actions"><a class="button" href="https://t.me/kroha_i_velikan">Написать в Telegram ↗</a><a class="textlink" href="#contacts">Адрес и телефон</a></div></div><div class="hero-photo"><img src="photo.jpg" alt="Йоркширский терьер на диване, фото из карточки студии в 2ГИС" width="1026" height="1532" fetchpriority="high"></div></section>
+<section class="hero wrap"><div><div class="eyebrow">Груминг-студия · Красноярск</div><h1>Забота о тех,<br>кого мы <em>любим.</em></h1><p class="lead">Груминг по предварительной записи в ЖК «Белые росы». Ярыгинская набережная, 13.</p><div class="actions"><a class="button" href="https://t.me/kroha_i_velikan">Написать в Telegram ↗</a><a class="textlink" href="#contacts">Адрес и телефон</a></div></div><div class="hero-photo" role="region" aria-label="Фотографии питомцев"><img src="photo.jpg" alt="Йоркширский терьер на диване, фото из карточки студии в 2ГИС" width="1026" height="1532" fetchpriority="high">
+<div class="gallery-controls" hidden>
+  <button type="button" data-step="-1" aria-label="Предыдущее фото">‹</button>
+  <button type="button" data-toggle aria-label="Остановить автолистание">Ⅱ</button>
+  <button type="button" data-step="1" aria-label="Следующее фото">›</button>
+</div></div></section>
 <div class="strip"><a href="https://2gis.ru/krasnoyarsk/firm/70000001040420923/tab/reviews">5,0 в 2ГИС · 128 отзывов ↗</a><span>Приём по записи со среды по воскресенье</span></div>
 <section class="about wrap" id="about"><div><div class="eyebrow">О студии</div><h2>Перед визитом</h2></div><div><p>Чтобы узнать стоимость ухода для вашего питомца и выбрать время, напишите в Telegram или позвоните в студию.</p><div class="info"><span>Адрес</span><strong>Ярыгинская набережная, 13</strong></div><div class="info"><span>Телефон</span><strong><a href="tel:+79130350444">+7 913 035-04-44</a></strong></div><div class="info"><span>Запись</span><strong>Ср–вс, по предварительной записи</strong></div><div class="info"><span>Отзывы</span><strong><a href="https://2gis.ru/krasnoyarsk/firm/70000001040420923/tab/reviews" target="_blank" rel="noopener noreferrer">Посмотреть в 2ГИС ↗</a></strong></div></div></section>
 <section class="wrap" id="contacts"><div class="contacts"><div><div class="eyebrow">Контакты</div><h2>Как нас найти</h2><p>Красноярск, Ярыгинская набережная, 13<br><a href="tel:+79130350444">+7 913 035-04-44</a></p></div><div><a class="button" href="https://t.me/kroha_i_velikan">Написать в Telegram ↗</a><p><a href="https://2gis.ru/krasnoyarsk/firm/70000001040420923" target="_blank" rel="noopener noreferrer">Открыть карту в 2ГИС ↗</a></p></div></div><footer><p>Кроха&amp;Великан · Красноярск</p><p><a href="https://2gis.ru/krasnoyarsk/firm/70000001040420923" target="_blank" rel="noopener noreferrer">Информация и фото из 2ГИС</a></p></footer></section>
 </main>
+<script>
+const gallery = document.querySelector('.hero-photo');
+const photo = gallery.querySelector('img');
+const controls = gallery.querySelector('.gallery-controls');
+const toggle = controls.querySelector('[data-toggle]');
+const slides = [
+  ['photo.jpg', 'Йоркширский терьер на диване'],
+  ['photo-2.jpg', 'Кошка на зелёном стуле'],
+  ['photo-3.jpg', 'Собака с белой бабочкой'],
+  ['photo-4.jpg', 'Йоркширский терьер с красным бантом'],
+  ['photo-5.jpg', 'Белая собака']
+];
+let index = 0;
+let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+let timer;
+
+function showSlide(step) {
+  index = (index + step + slides.length) % slides.length;
+  [photo.src, photo.alt] = slides[index];
+}
+
+function scheduleSlide() {
+  clearInterval(timer);
+  toggle.textContent = playing ? 'Ⅱ' : '▶';
+  toggle.setAttribute('aria-label', playing ? 'Остановить автолистание' : 'Запустить автолистание');
+  if (playing && !document.hidden) timer = setInterval(() => showSlide(1), 5000);
+}
+
+controls.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  if (button === toggle) playing = !playing;
+  else showSlide(Number(button.dataset.step));
+  scheduleSlide();
+});
+document.addEventListener('visibilitychange', scheduleSlide);
+controls.hidden = false;
+scheduleSlide();
+</script>
 </body></html>
