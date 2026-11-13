@@ -13,7 +13,8 @@
 a:focus-visible{outline:2px solid currentColor;outline-offset:5px}
 @media(max-width:750px){.hero-photo{padding-left:0}.hero-photo img{height:clamp(290px,100vw,470px)}.hero .actions{gap:12px 20px}.hero .textlink{display:inline-flex;align-items:center;min-height:44px}.info strong{max-width:67%}.strip{gap:12px 28px}.contacts .button{min-height:48px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button,.nav-btn{transition:none}}
-.gallery-controls{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:4px;background:#283831;border-radius:99px}
+.gallery-controls{position:absolute;z-index:1;bottom:15px;left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:4px;background:#283831;border-radius:99px}
+.hero-photo .incoming-photo{position:absolute;top:0;left:0}
 .gallery-controls[hidden]{display:none}
 .gallery-controls button{border:0;border-radius:50%;width:44px;height:44px;background:transparent;color:#fff;cursor:pointer;font:600 23px system-ui}
 .gallery-controls button:hover,.gallery-controls button:focus-visible{background:#4b6a57;outline:2px solid #fff;outline-offset:-3px}
@@ -35,23 +36,58 @@ a:focus-visible{outline:2px solid currentColor;outline-offset:5px}
 </main>
 <script>
 const gallery = document.querySelector('.hero-photo');
-const photo = gallery.querySelector('img');
+let photo = gallery.querySelector('img');
 const controls = gallery.querySelector('.gallery-controls');
 const toggle = controls.querySelector('[data-toggle]');
 const slides = [
   ['photo.jpg', 'Йоркширский терьер на диване'],
   ['photo-2.jpg', 'Кошка на зелёном стуле'],
   ['photo-3.jpg', 'Собака с белой бабочкой'],
-  ['photo-4.jpg', 'Йоркширский терьер с красным бантом'],
-  ['photo-5.jpg', 'Белая собака']
+  ['photo-11.jpg', 'Белая собака с круглой стрижкой'],
+  ['photo-7.jpg', 'Белая собака на столе для груминга'],
+  ['photo-16.jpg', 'Рыжая собака с клетчатой бабочкой'],
+  ['photo-5.jpg', 'Пушистая белая собака'],
+  ['photo-17.jpg', 'Маленькая белая собака на покрывале']
 ];
 let index = 0;
-let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let playing = !reducedMotion.matches;
+let changing = false;
 let timer;
 
-function showSlide(step) {
-  index = (index + step + slides.length) % slides.length;
-  [photo.src, photo.alt] = slides[index];
+async function showSlide(step) {
+  if (changing) return;
+  changing = true;
+  const nextIndex = (index + step + slides.length) % slides.length;
+  const [source, description] = slides[nextIndex];
+  const nextPhoto = new Image();
+  nextPhoto.src = source;
+  nextPhoto.alt = description;
+
+  try {
+    await nextPhoto.decode();
+    if (reducedMotion.matches) {
+      photo.replaceWith(nextPhoto);
+    } else {
+      nextPhoto.className = 'incoming-photo';
+      nextPhoto.setAttribute('aria-hidden', 'true');
+      photo.after(nextPhoto);
+      await nextPhoto.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 500,
+        easing: 'ease-in-out',
+        fill: 'both'
+      }).finished;
+      photo.remove();
+      nextPhoto.classList.remove('incoming-photo');
+      nextPhoto.removeAttribute('aria-hidden');
+    }
+    photo = nextPhoto;
+    index = nextIndex;
+  } catch {
+    nextPhoto.remove();
+  } finally {
+    changing = false;
+  }
 }
 
 function scheduleSlide() {
